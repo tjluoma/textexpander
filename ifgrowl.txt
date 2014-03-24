@@ -1,0 +1,54 @@
+
+GROWL='no'
+
+OSVER=`sw_vers -productVersion | cut -d . -f 1,2`
+
+	# pgrep only exists in 10.8 and later
+if [[ "$OSVER" -ge "10.8" ]]
+then
+
+	if [ -d '/Applications/Growl.app' ]
+	then
+
+		if (( $+commands[growlnotify] ))
+		then
+				pgrep -x Growl || open --hide -a Growl
+
+				if [ "`pgrep -x Growl`" != "" ]
+				then
+						# IFF Growl is installed _AND_ running _AND_ growlnotify is in path
+						# THEN we set GROWL='yes'
+
+						GROWL='yes'
+
+						function growl { growlnotify \
+										--appIcon "%filltext:name=appname:default=Terminal%"  \
+										--identifier "%filltext:name=identifier:default=$NAME%"  \
+										--message "%fill:message%"  \
+										--title "%filltext:name=title:default=$NAME%"
+
+										echo "$NAME: $@"
+						}
+
+						function growls { growlnotify --sticky \
+										--appIcon "%filltext:name=appname:default=Terminal%"  \
+										--identifier "%filltext:name=identifier:default=$NAME%"  \
+										--message "%fill:message%"  \
+										--title "%filltext:name=title:default=$NAME%"
+
+										echo "$NAME [sticky]: $@"
+						}
+
+				fi # pgrep
+
+		fi # growlnotify found in $PATH
+
+	fi # if Growl app exists
+
+fi # OSVER
+
+if [ "$GROWL" = "no" ]
+then
+		function growl		{ echo "$NAME: $@" }
+		function growls		{ echo "$NAME: $@" }
+fi
